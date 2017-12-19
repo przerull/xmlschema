@@ -190,11 +190,12 @@ def get_xml_root(source):
     """
     if isinstance(source, (str, bytes, unicode_type)):
         # source argument is a string
+        import io
         if '\n' not in source:
             try:
-                for _, xml_root in etree_iterparse(StringIO(source), events=('start',)):
+                for _, xml_root in etree_iterparse(io.BytesIO(source.encode()), events=('start',)):
                     return xml_root, None
-            except (etree_parse_error, UnicodeEncodeError):
+            except (etree_parse_error, UnicodeEncodeError, AttributeError):
                 xml_url = normalize_url(source)
                 resource = urlopen(xml_url)
                 try:

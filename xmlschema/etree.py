@@ -11,7 +11,8 @@
 """
 This module contains ElementTree setup for xmlschema package.
 """
-from xml.etree import ElementTree
+#from xml.etree import ElementTree
+import lxml.etree as ElementTree
 from .compat import PY3, StringIO
 from .namespaces import XSLT_NAMESPACE_PATH, HFP_NAMESPACE_PATH, VC_NAMESPACE_PATH
 
@@ -23,11 +24,17 @@ ElementTree.register_namespace('vc', VC_NAMESPACE_PATH)
 
 # Define alias for ElementTree API for internal module imports
 etree_iterparse = ElementTree.iterparse
-etree_fromstring = ElementTree.fromstring
 etree_parse_error = ElementTree.ParseError
 etree_element = ElementTree.Element
 etree_iselement = ElementTree.iselement
 etree_register_namespace = ElementTree.register_namespace
+
+
+if PY3 and ElementTree.__name__ == 'lxml.etree':
+    def etree_fromstring(s):
+        return ElementTree.fromstring(s.encode(), parser=ElementTree.ETCompatXMLParser())
+else:
+    etree_fromstring = ElementTree.fromstring
 
 
 def etree_tostring(elem, indent='', max_lines=None, spaces_for_tab=4):
@@ -67,13 +74,14 @@ def etree_get_namespaces(source):
     or a file like object or an etree Element (lxml).
     :return: A dictionary for mapping namespace prefixes to full URI.
     """
+    import io
     try:
         nsmap = {}
         try:
-            for event, node in etree_iterparse(StringIO(source), events=('start-ns',)):
+            for event, node in etree_iterparse(io.BytesIO(source.encode()), events=('start-ns',)):
                 if node[0] not in nsmap:
                     nsmap[node[0]] = node[1]
-        except ElementTree.ParseError:
+        except (ElementTree.ParseError, AttributeError):
             with open(source) as f:
                 for event, node in etree_iterparse(f, events=('start-ns', )):
                     if node[0] not in nsmap:

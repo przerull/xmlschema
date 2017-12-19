@@ -436,6 +436,9 @@ class XsdElement(Sequence, XsdAnnotated, ValidatorMixin, ParticleMixin, XPathMix
         while True:
             try:
                 qname = get_qname(self.target_namespace, elem[index].tag)
+            except TypeError:
+                import pdb
+                pdb.set_trace()
             except IndexError:
                 if model_occurs == 0 and self.min_occurs > 0:
                     yield XMLSchemaChildrenValidationError(self, elem, index, self.prefixed_name)

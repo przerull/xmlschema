@@ -342,7 +342,8 @@ def create_validator(xsd_version, meta_schema, base_schemas=None, facets=None, *
                 converter = getattr(self, 'converter', XMLSchemaConverter)
             if namespaces:
                 for prefix, _uri in namespaces.items():
-                    etree_register_namespace(prefix, _uri)
+                    if prefix:
+                        etree_register_namespace(prefix, _uri)
 
             if isinstance(converter, XMLSchemaConverter):
                 converter = converter.copy()

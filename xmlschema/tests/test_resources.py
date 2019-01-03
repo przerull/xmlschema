@@ -34,6 +34,7 @@ from xmlschema import (
     load_xml_resource, XMLResource, XMLSchemaURLError
 )
 from xmlschema.tests import XMLSchemaTestCase
+from io import BytesIO
 from xmlschema.compat import urlopen, urlsplit, uses_relative, StringIO
 from xmlschema.etree import (
     ElementTree, defused_etree, etree_parse, etree_iterparse, etree_fromstring, lxml_etree_parse, is_etree_element
@@ -257,6 +258,33 @@ class TestResources(XMLSchemaTestCase):
         self.assertIsNone(resource.url)
         self.assertIsInstance(resource.document, ElementTree.ElementTree)
         self.assertTrue(resource.text.startswith('<xs:schema'))
+
+    def test_xml_resource_from_bytes_io(self):
+        with open(self.vh_xsd_file) as schema_file:
+            schema_text = schema_file.read()
+
+        # the BytesIO class requires a bytes object in python3
+        # but accepts str objects in python2
+        test_string = '<xs:schema'
+        if sys.version_info[0] >= 3:
+            schema_text = bytes(schema_text, 'utf-8')
+            test_string = bytes(test_string, 'utf-8')
+
+        schema_file = BytesIO(schema_text)
+        resource = XMLResource(schema_file)
+        self.assertEqual(resource.source, schema_file)
+        self.assertEqual(resource.root.tag, '{http://www.w3.org/2001/XMLSchema}schema')
+        self.assertIsNone(resource.url)
+        self.assertIsNone(resource.document)
+        self.assertTrue(resource.text.startswith(test_string))
+
+        schema_file = BytesIO(schema_text)
+        resource = XMLResource(schema_file, lazy=False)
+        self.assertEqual(resource.source, schema_file)
+        self.assertEqual(resource.root.tag, '{http://www.w3.org/2001/XMLSchema}schema')
+        self.assertIsNone(resource.url)
+        self.assertIsInstance(resource.document, ElementTree.ElementTree)
+        self.assertTrue(resource.text.startswith(test_string))
 
     def test_xml_resource_from_wrong_type(self):
         self.assertRaises(TypeError, XMLResource, [b'<UNSUPPORTED_DATA_TYPE/>'])

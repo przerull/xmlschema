@@ -434,6 +434,7 @@ class TestXMLSchema11(TestXMLSchema10):
         self.assertTrue(schema.types['req-tz-date'].is_valid('2002-10-10Z'))
         self.assertFalse(schema.types['req-tz-date'].is_valid('2002-10-10'))
 
+    @unittest.skip("The feature is still under development")
     def test_assertion_facet(self):
         schema = self.check_schema("""
             <simpleType name='DimensionType'>

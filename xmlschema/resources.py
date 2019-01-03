@@ -12,6 +12,7 @@ import os.path
 import re
 import codecs
 
+from io import BytesIO
 from .compat import (
     PY3, StringIO, string_base_type, urlopen, urlsplit, urljoin, urlunsplit,
     pathname2url, URLError, uses_relative
@@ -290,7 +291,7 @@ class XMLResource(object):
                 self._url = _url
             url = normalize_url(source) if '\n' not in source else None
 
-        elif isinstance(source, StringIO):
+        elif isinstance(source, StringIO) or isinstance(source, BytesIO):
             _url, self._url = self._url, None
             try:
                 if lazy:
